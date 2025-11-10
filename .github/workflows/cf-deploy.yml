@@ -8,16 +8,12 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy to CF Pages
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        # 现在工作目录就是仓库根目录
+      - uses: actions/checkout@v4
 
-      - name: Publish to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v2
+      - name: Publish to CF Pages
+        uses: cloudflare/wrangler-action@v2   # 降级到 v2，避开 Docker 登录
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # 把当前仓库根目录整体当成静态站点发上去
           command: pages deploy . --project-name=aip-code-pages --branch=main
