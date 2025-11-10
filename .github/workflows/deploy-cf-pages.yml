@@ -1,4 +1,5 @@
-name: Generate API Code and Deploy to Cloudflare
+# name: Generate API Code and Deploy to Cloudflare
+name: Build aip_code → Deploy to CF Pages
 
 on:
   push:
