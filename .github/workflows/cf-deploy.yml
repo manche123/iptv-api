@@ -11,10 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Publish to Cloudflare Pages
+      - name: Publish to CF Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          packageManager: npm        # 强制用 npm 装 Wrangler，不走 Docker
+          packageManager: npm
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           command: pages deploy . --project-name=aip-code-pages --branch=main
