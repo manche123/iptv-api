@@ -15,7 +15,7 @@ jobs:
       # 1. 复用你原来的安装 & 构建命令
       - name: Install deps
         run: |
-          npm install                 # 或 pnpm install / yarn --frozen-lockfile
+          npm ci                 # 或 pnpm install / yarn --frozen-lockfile
       - name: Build aip_code
         run: |
           npm run build            # 生成 dist 目录（按你实际脚本改）
