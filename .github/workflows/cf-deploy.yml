@@ -46,4 +46,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # 下面命令行按需要改：
           # pages deploy <产物目录> --project-name=<你在CF创建的project名>
-          command: pages deploy dist --project-name=aip-code-pages --branch=main
+          command: pages deploy dist --project-name=iptv --branch=main
