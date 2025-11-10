@@ -3,7 +3,7 @@ name: Build & Deploy to Cloudflare
 on:
   push:
     branches: [main]
-  workflow_dispatch:          # 手动触发
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,38 +12,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1. 复用你原来的安装 & 构建命令
       - name: Install deps
-        run: |
-          npm ci                 # 或 pnpm install / yarn --frozen-lockfile
-      - name: Build aip_code
-        run: |
-          npm run build            # 生成 dist 目录（按你实际脚本改）
+        run: npm ci          # 确保已提交 package-lock.json
 
-      # 2. 上传产物供下一步部署
-      - name: Upload artifact
+      - name: Build
+        run: npm run build   # 生成 dist
+
+      # 把「源码+产物」一起打包，供下游使用
+      - name: Upload workspace
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: workspace
+          path: .             # 整个仓库打成 zip，包括 dist、package.json、wrangler.toml 等
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    name: Deploy to CF Pages
     steps:
-      - name: Download artifact
+      # 先还原完整仓库
+      - name: Download workspace
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: workspace
 
-      # 3. 一键推送到 Cloudflare Pages
-      - name: Publish
+      # 现在 package.json 有了，wrangler-action 就能正常执行
+      - name: Publish to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # 下面命令行按需要改：
-          # pages deploy <产物目录> --project-name=<你在CF创建的project名>
-          command: pages deploy dist --project-name=iptv --branch=main
+          command: pages deploy dist --project-name=aip-code-pages --branch=main
