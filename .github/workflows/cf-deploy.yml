@@ -1,9 +1,9 @@
-name: Build & Deploy to Cloudflare
+name: Build & Deploy to Cloudflare Pages
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: [master]   # 你的默认分支是 master
+  workflow_dispatch:     # 手动触发
 
 jobs:
   build:
@@ -12,33 +12,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 1. 安装依赖（无 package-lock.json 也能过）
       - name: Install deps
-        run: npm ci          # 确保已提交 package-lock.json
+        run: npm install
 
+      # 2. 构建产物（生成 dist 目录）
       - name: Build
-        run: npm run build   # 生成 dist
+        run: npm run build
 
-      # 把「源码+产物」一起打包，供下游使用
-      - name: Upload workspace
+      # 3. 把产物上传，供下游部署 job 使用
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: workspace
-          path: .             # 整个仓库打成 zip，包括 dist、package.json、wrangler.toml 等
+          name: dist
+          path: dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    name: Deploy to CF Pages
     steps:
-      # 先还原完整仓库
-      - name: Download workspace
+      # 4. 下载产物
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: workspace
+          name: dist
 
-      # 现在 package.json 有了，wrangler-action 就能正常执行
-      - name: Publish to Cloudflare Pages
+      # 5. 一键部署到 Cloudflare Pages
+      - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=aip-code-pages --branch=main
+          command: pages deploy . --project-name=aip-code-pages --branch=main
