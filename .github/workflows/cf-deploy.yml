@@ -1,47 +1,23 @@
-name: Build & Deploy to Cloudflare Pages
+name: Deploy static files to Cloudflare Pages
 
 on:
   push:
-    branches: [master]   # 你的默认分支是 master
-  workflow_dispatch:     # 手动触发
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # 1. 安装依赖（无 package-lock.json 也能过）
-      - name: Install deps
-        run: npm install
-
-      # 2. 构建产物（生成 dist 目录）
-      - name: Build
-        run: npm run build
-
-      # 3. 把产物上传，供下游部署 job 使用
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     name: Deploy to CF Pages
     steps:
-      # 4. 下载产物
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
+      - name: Checkout
+        uses: actions/checkout@v4
+        # 现在工作目录就是仓库根目录
 
-      # 5. 一键部署到 Cloudflare Pages
-      - name: Publish
+      - name: Publish to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # 把当前仓库根目录整体当成静态站点发上去
           command: pages deploy . --project-name=aip-code-pages --branch=main
